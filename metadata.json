@@ -1,0 +1,7 @@
+{
+  "name": "ChromaTune: AI Clothing Color DJ",
+  "description": "An AI-powered web app that detects the dominant color of your clothing through your camera and suggests a Spotify playlist to match the vibe.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
