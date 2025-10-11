@@ -7,7 +7,7 @@ export const SPOTIFY_PLAYLISTS: Record<ColorKey, string> = {
     'Yellow': '37i9dQZF1DX0XUfTFmNBRM', // Bollywood Party
     'Purple': '37i9dQZF1DXdLEN7aqioXM', // Synthwave From Space
     'Black':  '37i9dQZF1DX0XUsuxWHRQd', // RapCaviar (Hip-Hop)
-    'White':  '37i9dQZF1DX5q67Zp9r5zS', // Lofi Beats
+    'White':  '37i9dQZF1DX3rxVfSAhnEM', // Ambient Chill
     'Gray':   '37i9dQZF1DX4WYpdgoIcn6', // Chill Hits
     'Default':'37i9dQZF1DX5q67Zp9r5zS'  // Lofi Beats as default
 };
