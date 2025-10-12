@@ -1,20 +1,33 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 🎶 ChromaTune: AI Clothing Color DJ
+An AI-powered web app that detects the dominant color of your clothing through your camera and suggests a Spotify playlist to match the vibe.
 
-# Run and deploy your AI Studio app
+## 📖 About
 
-This contains everything you need to run your app locally.
+ChromaTune is an interactive web experience that bridges the gap between your personal style and your musical mood. By simply using your device's camera, the application analyzes the dominant color of your outfit and acts as your personal "Color DJ," curating a unique Spotify playlist to match. It's a fun, engaging way to discover new music and see how the colors you wear can influence your day's soundtrack.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1kIHYJUkpKFdPB976QkVDiOmF_xksp5Qm
+## ✨ Features
 
-## Run Locally
+- **Live Color Detection**: Utilizes your webcam to analyze colors in real-time, directly in your browser
+- **Vibe Matching**: Each detected color is mapped to a carefully selected Spotify playlist representing a specific mood or genre (e.g., Red for Energetic Rock, Gray for Chill Hits)
+- **Seamless Music Playback**: Features a fully integrated Spotify web player that starts automatically, creating an uninterrupted experience
+- **Interactive & Responsive UI**: A sleek, modern interface with smooth animations that looks great on both desktop and mobile devices
+- **Client-Side Processing**: For your privacy, all image analysis happens locally on your device. No video or image data is ever uploaded or stored
 
-**Prerequisites:**  Node.js
+## 🚀 Getting Started
+
+To get a local copy up and running, follow these simple steps.
+
+### Prerequisites
+
+Make sure you have the following installed on your machine:
+Node.js (v14 or higher)
+npm or yarn
+
+### Installation
+
+Clone the repository
+```bash
+git clone https://github.com/your_username/chromatune.git
+cd chromatune
 
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
