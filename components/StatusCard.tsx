@@ -5,12 +5,13 @@ import { COLOR_DISPLAY_INFO } from '../constants';
 
 interface StatusCardProps {
     appState: AppState;
-    detectedColor: ColorKey;
+    detectedColors: { color: ColorKey; votes: number }[];
 }
 
-const StatusCard: React.FC<StatusCardProps> = ({ appState, detectedColor }) => {
+const StatusCard: React.FC<StatusCardProps> = ({ appState, detectedColors }) => {
     const isVisible = appState === AppState.ANALYZING || appState === AppState.RESULT_SHOWN;
-    const displayInfo = COLOR_DISPLAY_INFO[detectedColor] || COLOR_DISPLAY_INFO['Default'];
+    const primaryColor = detectedColors[0]?.color || 'Default';
+    const displayInfo = COLOR_DISPLAY_INFO[primaryColor];
     
     return (
         <div className={`p-6 rounded-xl bg-white/10 backdrop-blur-md -webkit-backdrop-filter-blur-md text-center w-full max-w-md transition-all duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
@@ -34,10 +35,10 @@ const StatusCard: React.FC<StatusCardProps> = ({ appState, detectedColor }) => {
                                 color: displayInfo.textColor || '#fff' 
                             }}
                         >
-                            {detectedColor}
+                            {primaryColor}
                         </span>
                     </div>
-                    <div className="mt-2 text-lg text-gray-300">
+                    <div className="mt-4 text-lg text-gray-300">
                         Playing a <span className="font-semibold">{displayInfo.mood}</span> playlist.
                     </div>
                 </div>

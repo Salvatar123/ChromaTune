@@ -7,4 +7,12 @@ export enum AppState {
   RESULT_SHOWN,
 }
 
-export type ColorKey = 'Red' | 'Green' | 'Blue' | 'Yellow' | 'Purple' | 'Black' | 'White' | 'Gray' | 'Default';
+export type ColorKey = 
+    | 'Red' | 'Pink' | 'Maroon' | 'Orange' | 'Coral'
+    | 'Green' | 'Lime' | 'Olive' | 'Teal' | 'Mint'
+    | 'Blue' | 'Navy' | 'SkyBlue' | 'Turquoise'
+    | 'Yellow' | 'Gold' | 'Cream'
+    | 'Purple' | 'Violet' | 'Lavender' | 'Magenta'
+    | 'Brown' | 'Beige' | 'Tan'
+    | 'Black' | 'White' | 'Gray' | 'Silver'
+    | 'Default';

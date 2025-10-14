@@ -34,14 +34,7 @@ const Controls: React.FC<ControlsProps> = ({ appState, onStart, onDetect, onRese
                 </button>
             )}
 
-            {appState === AppState.CAMERA_STARTED && (
-                <button 
-                    onClick={onDetect}
-                    className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-semibold rounded-lg shadow-md hover:scale-105 transform transition-transform duration-300"
-                >
-                    <span>🎶 Detect Vibe</span>
-                </button>
-            )}
+            {/* Detect Vibe button removed for continuous detection */}
 
             {appState >= AppState.CAMERA_LOADING && (
                  <button 
