@@ -90,4 +90,5 @@ export const COLOR_DISPLAY_INFO: Record<ColorKey, { mood: string; color: string;
     'Silver':  { mood: 'Modern', color: '#e5e7eb', textColor: '#1f2937' },
     
     'Default': { mood: 'Chill', color: '#4b5563' }
+
 };
