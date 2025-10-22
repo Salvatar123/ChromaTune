@@ -73,10 +73,8 @@ const COLOR_CENTROIDS: Record<ColorKey, [number, number, number]> = {
     // Neutral
     Black: [31, 41, 55],
     White: [249, 250, 251],
-    Gray: [107, 114, 128],
-    Silver: [229, 231, 235],
-    
-    Default: [75, 85, 99],
+    Gray: [128, 128, 128],  // More balanced gray
+    Silver: [229, 231, 235]
 };
 
 function euclideanDistance(a: [number, number, number], b: [number, number, number]) {
@@ -86,30 +84,98 @@ function euclideanDistance(a: [number, number, number], b: [number, number, numb
 const getDominantColors = (data: Uint8ClampedArray): { color: ColorKey; votes: number }[] => {
     // Helper function to check if a pixel is likely noise
     const isNoise = (rgb: [number, number, number], hsv: [number, number, number]): boolean => {
-        // Check if pixel is too dark or too light
-        if (hsv[2] < 0.15 || hsv[2] > 0.95) return true;
-        
-        // Check if pixel has too low saturation (greyish)
-        if (hsv[1] < 0.20) return true;
-        
-        // Check if RGB values are too similar (indicating greyish colors)
         const [r, g, b] = rgb;
+        const [h, s, v] = hsv;
         const avg = (r + g + b) / 3;
-        const variation = Math.abs(r - avg) + Math.abs(g - avg) + Math.abs(b - avg);
-        if (variation < 30) return true; // Low color variation threshold
+
+        // Special handling for black
+        const isVeryDark = v < 0.12; // Using HSV value instead of RGB average
+        const isBalancedDark = Math.abs(r - g) < 12 && Math.abs(g - b) < 12 && Math.abs(r - b) < 12;
+        if (isVeryDark && isBalancedDark) {
+            return false; // Accept as valid black pixel
+        }
+
+        // Special handling for white
+        const isVeryBright = v > 0.96; // Using HSV value
+        const isBalancedWhite = Math.abs(r - g) < 12 && Math.abs(g - b) < 12 && Math.abs(r - b) < 12;
+        if (isVeryBright && isBalancedWhite) {
+            return false; // Accept as valid white pixel
+        }
+
+        // Special handling for gray
+        const isGrayish = s < 0.15; // Low saturation indicates gray
+        const isBalancedGray = Math.abs(r - g) < 15 && Math.abs(g - b) < 15 && Math.abs(r - b) < 15;
+        const isMediumBrightness = v > 0.2 && v < 0.8;
+        if (isGrayish && isBalancedGray && isMediumBrightness) {
+            return false; // Accept as valid gray pixel
+        }
+
+        // For mid-range values, we want more color differentiation
+        const isMidRange = v > 0.12 && v < 0.96;
         
+        // Enhanced saturation check for non-extreme values
+        if (isMidRange && s < 0.08) return true; // Reject very desaturated colors
+        
+        // Check if RGB values are too similar (for non-extreme colors)
+        const variation = Math.abs(r - avg) + Math.abs(g - avg) + Math.abs(b - avg);
+        if (isMidRange && variation < 30) return true; // More strict variation threshold
+        
+        // Check for extreme color imbalance (likely noise or artifacts)
+        const maxDiff = Math.max(Math.abs(r - g), Math.abs(g - b), Math.abs(b - r));
+        if (maxDiff > 180 && !isVeryBright && !isVeryDark) return true;
+        
+        // Check for unnatural color combinations
+        const isUnnatural = (s > 0.9 && v < 0.3) || (s > 0.95 && v > 0.95);
+        if (isUnnatural) return true;
+
         return false;
     };
 
-    // Sample 500 pixels randomly for better accuracy
+    // Sample 800 pixels randomly for better accuracy with noise filtering
     const samples: [number, number, number][] = [];
-    for (let i = 0; i < 500 && i*4 < data.length; i++) {
+    const tempSamples: [number, number, number][] = [];
+    
+    // First pass: collect more samples
+    for (let i = 0; i < 800 && i*4 < data.length; i++) {
         const idx = Math.floor(Math.random() * (data.length / 4)) * 4;
         const rgb: [number, number, number] = [data[idx], data[idx+1], data[idx+2]];
         const hsv = rgbToHsv(rgb[0], rgb[1], rgb[2]);
-        // Only add non-noise pixels
         if (!isNoise(rgb, hsv)) {
-            samples.push(rgb);
+            tempSamples.push(rgb);
+        }
+    }
+    
+    // Second pass: cluster filtering with k-means inspired approach
+    if (tempSamples.length > 0) {
+        // Calculate weighted average based on color frequency
+        const colorFrequency: Map<string, { count: number; color: [number, number, number] }> = new Map();
+        
+        for (const rgb of tempSamples) {
+            // Round to reduce sensitivity to small variations
+            const key = rgb.map(v => Math.round(v / 10) * 10).join(',');
+            if (!colorFrequency.has(key)) {
+                colorFrequency.set(key, { count: 1, color: rgb });
+            } else {
+                colorFrequency.get(key)!.count++;
+            }
+        }
+
+        // Sort by frequency and get top clusters
+        const topClusters = Array.from(colorFrequency.values())
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 3);
+
+        // Only keep samples that are close to the dominant clusters
+        for (const rgb of tempSamples) {
+            // Check if the sample is close to any of the dominant clusters
+            const isCloseToCluster = topClusters.some(cluster => {
+                const dist = euclideanDistance(rgb, cluster.color);
+                return dist < 120; // Stricter threshold for cluster membership
+            });
+
+            if (isCloseToCluster) {
+                samples.push(rgb);
+            }
         }
     }
     // Predict color for each sample and count votes
@@ -127,13 +193,12 @@ const getDominantColors = (data: Uint8ClampedArray): { color: ColorKey; votes: n
         // Browns
         Brown: 0, Beige: 0, Tan: 0,
         // Neutral
-        Black: 0, White: 0, Gray: 0, Silver: 0,
-        // Default
-        Default: 0
+        Black: 0, White: 0, Gray: 0, Silver: 0
     };
+
     for (const rgb of samples) {
         let minDist = Infinity;
-        let bestColor: ColorKey = 'Default';
+        let bestColor: ColorKey = 'White'; // Default to white instead of having a separate default
         for (const key in COLOR_CENTROIDS) {
             const dist = euclideanDistance(rgb, COLOR_CENTROIDS[key as ColorKey]);
             if (dist < minDist) {
@@ -141,17 +206,18 @@ const getDominantColors = (data: Uint8ClampedArray): { color: ColorKey; votes: n
                 bestColor = key as ColorKey;
             }
         }
-        votes[bestColor]!++;
+        votes[bestColor]++;
     }
+
     // Get top 3 colors with their vote counts
     const sortedColors = Object.entries(votes)
         .map(([color, count]) => ({ color: color as ColorKey, votes: count }))
-        .filter(({color, votes}) => votes > 0 && color !== 'Default')
+        .filter(({votes}) => votes > 0)
         .sort((a, b) => b.votes - a.votes)
         .slice(0, 3);
 
-    // If no colors detected, return array with default
-    return sortedColors.length > 0 ? sortedColors : [{ color: 'Default', votes: 1 }];
+    // If somehow no colors detected, return White as fallback
+    return sortedColors.length > 0 ? sortedColors : [{ color: 'White', votes: 1 }];
 };
 
 
@@ -255,7 +321,7 @@ const App: React.FC = () => {
             videoRef.current.srcObject = null;
         }
         setStream(null);
-        setDetectedColors([{ color: 'Default', votes: 1 }]);
+        setDetectedColors([]);
         setScanBoxStyle({});
         setError(null);
         setAppState(AppState.IDLE);
@@ -278,7 +344,7 @@ const App: React.FC = () => {
                     <span className="block sm:inline">{error}</span>
                 </div>}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                    {/* Left: Camera & Controls */}
+                        {/* Left: Camera & Controls */}
                     <div className="flex flex-col items-center">
                         <VideoDisplay 
                             videoRef={videoRef} 

@@ -14,5 +14,4 @@ export type ColorKey =
     | 'Yellow' | 'Gold' | 'Cream'
     | 'Purple' | 'Violet' | 'Lavender' | 'Magenta'
     | 'Brown' | 'Beige' | 'Tan'
-    | 'Black' | 'White' | 'Gray' | 'Silver'
-    | 'Default';
+    | 'Black' | 'White' | 'Gray' | 'Silver';
